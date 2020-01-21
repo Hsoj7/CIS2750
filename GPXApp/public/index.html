@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<!-- 38577, 30724-->
+<!--
+http://cis2750.socs.uoguelph.ca:38577/
+mysql -h dursley.socs.uoguelph.ca -u jstone04 -p
+-->
+<!--
+Questions/To do:
+  update display all points from route drop down based on database changes
+  Check if file log panel is empty - if is it empty, cant execute store files
+  after every command, display an alert with the status of each tables count
+
+-->
+<html lang="en">
+<head>
+    <title>GPS Data Viewer</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="CHANGE ME">
+    <meta name="keywords" content="CHANGE ME">
+    <meta name="author" content="Josh Stone">
+    <!--<meta http-equiv="Content-Security-Policy" content="default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' http://www.google.com">-->
+    <!-- Load jquery, bootstrap -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <!-- Custom CSS End -->
+</head>
+<body id="body">
+    <!--FILE LOG PANEL-->
+    <br>
+    <center><h1><b>Josh's Bitchn' Gui</b></h6></center>
+    <br>
+    <center><h4><b>File Log Panel</b></h4></center>
+    <br>
+
+    <div id="divFileLogTable" style="max-height:200px;overflow-x:auto;">
+      <table style='width:100%' id='fileLogTable'>
+          <tr><th><b>File name (click to download)</b></th>
+              <th><b>Version</b></th>
+              <th><b>Creator</b></th>
+              <th><b>Number of waypoints</b></th>
+              <th><b>Number of routes</b></th>
+              <th><b>Number of tracks</b></th>
+          </tr>
+          <tbody id="FLBody">
+
+          </tbody>
+        </table>
+    </div>
+    <br>
+
+    <!--<form ref="upload" id="upload">
+       <input id="fileupload" name="myfile" type="file" >
+       <input type="submit" value="submit" id="uploadSubmit" >
+    </form>-->
+    <form ref="upload" id="upload" enctype="multipart/form-data" method="post" action="/upload">
+       <input id="fileupload" name="myfile" type="file" >
+       <input type="submit" value="submit" id="submit" >
+    </form>
+
+    <br><br>
+
+    <!--GPX View Panel-->
+    <center><div style="display:inline-block"><h4><b>GPX View Panel &nbsp;</b></h4></div>
+    <div style="display:inline-block">
+      <form>
+        <select id="GPXViewDropList" name="files" onchange="gpxDisplay(this)">
+        </select>
+      </form>
+    </div></center>
+    <br>
+
+    <div id="divGPXViewPanel">
+      <table style="width:100%" id="GPXViewPanel" >
+          <tr><th><b>Component</b></td>
+              <th><b>Name</b></td>
+              <th><b>Number of points</b></td>
+              <th><b>Length</b></td>
+              <th><b>Loop</b></td>
+              <th><b>Attributes</b></td>
+          </tr>
+          <!--Gets filled in from index.js-->
+          <tbody id="GPXViewPanelBody">
+          </tbody>
+      </table>
+    </div>
+    <br>
+    <div style="display:inline-block">
+      <p style="font-size:18px"><b>Rename your routes/tracks &nbsp;</b></p>
+    </div>
+    <div id="GPXRename">
+      <form>
+        <input type="radio" name="TR" value="Route"> Route<br>
+        <input type="radio" name="TR" value="Track"> Track<br>
+        <br>
+        <input type="text" class="form-control" id="oldName" name="oldName" value="" placeholder="Name to be changed">
+        <input type="text" class="form-control" id="newName" name="newName" value="" placeholder="New name">
+        <br>
+        <input type="submit" name="submit" class="button" id="renameSubmit" value="Rename">
+      </form>
+    </div>
+
+    <br>
+    <hr style="border-top: 1px solid black">
+    <br>
+
+    <!-- Form for create GPX -->
+    <div>
+      <p style="font-size:18px"><b>Create GPX</b></p>
+      <form ref='createGPX' id='createGPX' method="get" action="/createGPX">
+          <div class="GPXForm">
+            <!--Can change class to "text-input" to make smaller boxes-->
+              <input type="text" class="form-control" id="CGPXVersion" name="CGPXVersion" value="" placeholder="Version">
+              <input type="text" class="form-control" id="CGPXCreator" name="CGPXCreator" value="" placeholder="Creator">
+              <input type="text" class="form-control" id="CGPXFilename" name="CGPXFilename" value="" placeholder="File Name">
+              <br>
+              <input type="submit" name="submit" class="button" id="CGPXSubmit" value="Create GPX">
+          </div>
+      </form>
+    </div>
+    <br>
+
+    <!-- Code to add Routes -->
+    <hr style="border-top: 1px solid black">
+    <br>
+    <div style="display:inline-block"><p style="font-size:18px"><b>Add Route &nbsp;</b></p></div>
+    <div style="display:inline-block">
+      <form>
+          <select id="addRouteList" name="files" onchange="routeChooseFile(this)">
+          </select>
+      </form>
+    </div>
+    <div>
+      <h6>Add # of waypoints to route before submitting route</h6>
+    </div>
+    <div>
+      <form ref='addWpts' id="addWpts">
+        <input type="text" class="form-control" id="wptName" name="wptName" placeholder="Waypoint Name"></input>
+        <input type="text" class="form-control" id="lat" name="lat" placeholder="Latitude Ex: 40.59"></input>
+        <input type="text" class="form-control" id="lon" name="lon" placeholder="longitude Ex: 120.62"></input>
+        <input type="submit" name="submit" class="button" id="addWptSubmit" value="Add Waypoint">
+      </form>
+    </div>
+    <div id="numWpts">
+    </div>
+    <br>
+    <div>
+      <h6>When finished adding waypoints, name your route</h6>
+    </div>
+    <div>
+      <form ref='addRte' id="addRte">
+        <input type="text" id="rteName" name="rteName" placeholder="Route Name"></input>
+        <br>
+        <input type="submit" name="submit" class="button" id="addRteSubmit" value="Add Route">
+      </form>
+    </div>
+
+    <br>
+    <hr style="border-top: 1px solid black">
+    <br>
+
+    <!-- code to find paths between -->
+    <div><p style="font-size:18px"><b>Find Paths Between</b></p></div>
+    <div>
+      <form id="findBetweenForm" >
+        <input type="text" class="form-control" id="latSrc" placeholder="Start Latitude Ex: 80.0"></input>
+        <input type="text" class="form-control" id="lonSrc" placeholder="Start longitude Ex: 120.0"></input>
+        <br>
+        <input type="text" class="form-control" id="latDest" placeholder="End Latitude Ex: 80.3"></input>
+        <input type="text" class="form-control" id="lonDest" placeholder="End longitude Ex: 120.3"></input>
+        <br>
+        <input type="text" class="form-control" id="delta" placeholder="Delta (in meters) Ex: 10"></input>
+        <br>
+        <input type="submit" name="submit" class="button" id="findBetween" value="Find path">
+      </form>
+    </div>
+    <br>
+    <div id="divBetweenTable">
+      <table style="width:100%" id="betweenTable">
+          <tr><th><b>File Name</b></td>
+              <th><b>Type</b></td>
+              <th><b>Track/route Name</b></td>
+              <th><b>Number of points</b></td>
+              <th><b>Length</b></td>
+              <th><b>Loop</b></td>
+              <th><b>Show Attributes</b></td>
+          </tr>
+          <!--Gets filled in from index.js-->
+          <tbody id="betweenTableBody">
+            <tr><td>No paths searched</td></tr>
+          </tbody>
+      </table>
+    </div>
+
+    <br><hr style="border-top: 1px solid black"><br>
+
+    <!-- database stuff -->
+    <center><h4><b>Database Connection/Manipulation</b></h4></center>
+    <div><p style="font-size:18px"><b>User Login</b></p></div>
+    <div id="DBLogin">
+      <form id="loginForm" >
+        <input type="text" class="form-control" id="userName" placeholder="Username"></input>
+        <input type="password" class="form-control" id="password" placeholder="Password"></input>
+        <input type="text" class="form-control" id="DBName" placeholder="Database name"></input>
+        <br>
+        <input type="submit" name="submit" class="button" id="submitLogin" value="Login">
+      </form>
+      <div>
+        <p id="loginConfirmation"></p>
+      </div>
+    </div>
+
+    <br><hr style="border-top: 1px solid black"><br>
+
+    <div><p style="font-size:18px"><b>Store All Files In Database</b></p></div>
+    <div>
+      <input type="submit" name="submit" class="button" id="storeFiles" value="Store">
+    </div>
+
+    <br><hr style="border-top: 1px solid black"><br>
+
+    <div><p style="font-size:18px"><b>Clear All Tables</b></p></div>
+    <div>
+      <input type="submit" name="submit" class="button" id="clearFiles" value="Clear">
+    </div>
+
+    <br><hr style="border-top: 1px solid black"><br>
+
+    <div><p style="font-size:18px"><b>Display Database Status</b></p></div>
+    <div>
+      <input type="submit" name="submit" class="button" id="displayStatus" value="Status">
+    </div>
+
+    <br><hr style="border-top: 1px solid black"><br>
+
+    <!--displaying routes from database by either name or length-->
+    <div><p style="font-size:18px"><b>Display All Routes Ordered By:</b></p></div>
+
+    <div id="routeDisplay">
+      <form>
+        <input type="radio" name="routeDisplay" value="Length"> Length<br>
+        <input type="radio" name="routeDisplay" value="Name"> Name<br>
+        <br>
+        <input type="submit" name="submit" class="button" id="routeDisplayBtn" value="Display">
+      </form>
+    </div>
+    <br>
+    <div>
+      <table style="width:100%" id="routeDisplayTable">
+        <tbody id="routeDisplayTableBody">
+
+        </tbody>
+      </table>
+    </div>
+
+    <br><hr style="border-top: 1px solid black"><br>
+
+    <div style="display:inline-block"><p style="font-size:18px"><b>Display Routes From a File &nbsp;</b></p></div>
+    <div style="display:inline-block">
+      <form>
+          <select id="routeFromFileList" name="files" onchange="changeRouteFile(this)">
+          </select>
+      </form>
+    </div>
+    <br>
+    <div><p style="font-size:18px"><b>Order By</b></p></div>
+    <div id="routeDisplaySpecific">
+      <form>
+        <input type="radio" name="routeDisplaySpecific" value="routeName"> Route Name<br>
+        <input type="radio" name="routeDisplaySpecific" value="routeLength"> Route Length<br>
+        <br>
+        <input type="submit" name="submit" class="button" id="routeDisplaySpecificBtn" value="Display">
+      </form>
+    </div>
+    <div>
+      <br>
+      <table style="width:100%" id="routeDisplaySpecificTable">
+        <tbody id="routeDisplaySpecificTableBody">
+
+        </tbody>
+      </table>
+    </div>
+
+    <br><hr style="border-top: 1px solid black"><br>
+
+    <!--Query 3-->
+    <div style="display:inline-block"><p style="font-size:18px"><b>Display All Points From Route &nbsp;</b></p></div>
+    <div style="display:inline-block">
+      <form>
+          <select id="allPointsList" name="files" onchange="changePointsRoute(this)">
+          </select>
+      </form>
+    </div>
+    <div>
+      <form>
+        <input type="submit" name="submit" class="button" id="query3" value="Display">
+      </form>
+    </div>
+    <div id="query3TableDiv">
+      <br>
+      <table style="width:100%" id="query3Table">
+        <tbody id="query3TableBody">
+
+        </tbody>
+      </table>
+    </div>
+
+    <br><hr style="border-top: 1px solid black"><br>
+
+    <div style="display:inline-block"><p style="font-size:18px"><b>Display Points From a File &nbsp;</b></p></div>
+    <div style="display:inline-block">
+      <form>
+          <select id="pointFromFileList" name="files" onchange="changePointsFile(this)">
+          </select>
+      </form>
+    </div>
+    <br>
+    <div id="pointFromFile">
+      <form>
+        <input type="submit" name="submit" class="button" id="pointFromFileBtn" value="Display">
+      </form>
+    </div>
+    <div id="query4TableDiv">
+      <br>
+      <table style="width:100%" id="query4Table">
+        <tbody id="query4TableBody">
+
+        </tbody>
+      </table>
+    </div>
+
+    <br><hr style="border-top: 1px solid black"><br>
+
+    <br><br><br><br><br>
+
+
+    <!-- Leave me at the bottom of body -->
+    <script src="/index.js"></script>
+</body>
+</html>
+
+
+
+<!--
+CREATE/ INSERT, DELETE, on slide 14
+
+CREATE TABLE FILE (
+gpx_id INT AUTO_INCREMENT PRIMARY KEY,
+file_name VARCHAR(60) NOT NULL,
+ver DECIMAL(2,1) NOT NULL,
+creator VARCHAR(256) NOT NULL);
+
+CREATE TABLE ROUTE (
+route_id INT AUTO_INCREMENT PRIMARY KEY,
+route_name VARCHAR(256),
+route_len FLOAT(15,7) NOT NULL,
+gpx_id INT NOT NULL,
+FOREIGN KEY(gpx_id) REFERENCES FILE(gpx_id) ON DELETE CASCADE);
+
+CREATE TABLE POINT(
+point_id INT AUTO_INCREMENT PRIMARY KEY,
+point_index INT NOT NULL,
+latitude DECIMAL(11,7) NOT NULL,
+longitude DECIMAL(11,7) NOT NULL,
+point_name VARCHAR(256),
+route_id INT NOT NULL,
+FOREIGN KEY(route_id) REFERENCES ROUTE(route_id) ON DELETE CASCADE);
+-->

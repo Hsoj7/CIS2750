@@ -1,0 +1,110 @@
+table, th, td {
+  border: 1px solid black;
+  padding: 5px;
+}
+button {
+  background-color: grey;
+  border: none;
+  color: white;
+  padding: 7px 15px;
+  text-align: center;
+  font-size: 13px;
+  cursor: pointer;
+}
+button:hover {
+  background-color: #545454;
+  transition: all 0.7s ease;
+}
+/* style="height:240px;overflow:auto" */
+#divGPXViewPanel{
+  max-height: 240px;
+  overflow:auto;
+}
+#divBetweenTable{
+  max-height: 240px;
+  overflow:auto;
+}
+#routeDisplayTable{
+  max-height: 240px;
+  overflow:auto;
+}
+#DBLogin{
+  max-height: 240px;
+}
+#query3TableDiv{
+  max-height: 240px;
+  overflow:auto;
+}
+#query4TableDiv{
+  max-height: 240px;
+  overflow:auto;
+}
+.dropbtn {
+  background-color: #545454;
+  color: white;
+  padding: -10px;
+  font-size: 13px;
+  border: none;
+}
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+html {
+    width: 60%;
+    height: 100%;
+    min-height: 100%;
+    margin: 0 auto;
+    font-size: 16px;
+    background-color: #FFFFFF;
+}
+body {
+    height: 100%;
+    min-height: 100%;
+    line-height: 1.75;
+    background-color: #FFFFFF;
+}
+a:link:hover {
+    -webkit-transition: all 0.3s ease;
+    -moz-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+    text-decoration: underline;
+    cursor: pointer;
+    cursor: hand;
+}
+input[type=submit], button {
+    cursor: pointer;
+    cursor: hand;
+    background-color: grey;
+    border: none;
+    color: white;
+    padding: 7px 15px;
+    text-align: center;
+    font-size: 13px;
+}
+@media(max-width: 900px) {
+    html {
+        font-size: 14px !important;
+        width: 80% !important;
+    }
+}
+@media(max-width: 480px) {
+    html {
+        font-size: 12px !important;
+        width: 90% !important;
+    }
+}
+@media(max-width: 320px) {
+    html {
+        font-size: 12px !important;
+        width: 100% !important;
+    }
+}
